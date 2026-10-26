@@ -73,7 +73,7 @@ export function ForgotPasswordPage() {
       <p className="mt-1 text-center text-sm text-muted">
         {token
           ? "Enter a new password for your account."
-          : "Enter your account email and we&apos;ll send you a reset link."}
+          : "Enter your account email and we'll send you a reset link."}
       </p>
 
       <form

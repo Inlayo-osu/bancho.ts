@@ -17,6 +17,7 @@ export function VerifyEmailPage() {
   const [error, setError] = useState<string | null>(
     token ? null : "This verification link is missing its token.",
   );
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
 
   useEffect(() => {
@@ -38,12 +39,12 @@ export function VerifyEmailPage() {
     event.preventDefault();
     if (!email) return;
     setError(null);
+    setResendMessage(null);
     setIsResending(true);
 
     try {
       await api.requestEmailVerification(email);
-      setStatus("loading");
-      setError("A new verification link has been sent.");
+      setResendMessage("A new verification link has been sent.");
     } catch (resendError) {
       setError(
         resendError instanceof ApiError
@@ -108,6 +109,11 @@ export function VerifyEmailPage() {
 
         {status === "loading" && error && (
           <p className="mt-4 text-sm text-accent">{error}</p>
+        )}
+        {resendMessage && (
+          <p role="status" className="mt-4 text-sm text-emerald-300">
+            {resendMessage}
+          </p>
         )}
       </div>
     </div>

@@ -9,7 +9,6 @@ const NAV_LINKS = [
   { to: "/", label: "Home" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/topplays", label: "Top Plays" },
-  { to: "https://discord.gg/qPdNsutTte", label: "Discord" },
 ];
 
 export function Navbar() {
@@ -44,6 +43,14 @@ export function Navbar() {
                   {link.label}
                 </NavLink>
               ))}
+              <a
+                href="https://discord.gg/qPdNsutTte"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:text-slate-100"
+              >
+                Discord
+              </a>
             </nav>
 
             <div className="ml-auto flex shrink-0 items-center gap-3">

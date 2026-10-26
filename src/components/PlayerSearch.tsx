@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 
 import { Avatar } from "@/components/Avatar";
 import { api } from "@/lib/api/client";
+import { ApiError } from "@/lib/api/http";
 import type { SearchPlayer } from "@/lib/api/types";
 
 interface PlayerSearchProps {
@@ -31,8 +33,19 @@ export function PlayerSearch({
   const debouncedQuery = useDebounced(query.trim(), 300);
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
 
-  const { data: results } = useQuery({
+  const {
+    data: results,
+    error,
+    isFetching,
+  } = useQuery({
     queryKey: ["player-search", debouncedQuery],
     queryFn: () => api.searchPlayers(debouncedQuery),
     enabled: debouncedQuery.length >= 2,
@@ -43,13 +56,43 @@ export function PlayerSearch({
 
   useEffect(() => {
     function onClickOutside(event: MouseEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        !containerRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     }
     document.addEventListener("mousedown", onClickOutside);
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!open || debouncedQuery.length < 2 || !inputRef.current) {
+      setMenuPosition(null);
+      return;
+    }
+
+    function updateMenuPosition() {
+      const input = inputRef.current?.getBoundingClientRect();
+      if (!input) return;
+      const width = Math.min(input.width, window.innerWidth - 16);
+      setMenuPosition({
+        top: input.bottom + 8,
+        left: Math.max(8, Math.min(input.left, window.innerWidth - width - 8)),
+        width,
+      });
+    }
+
+    updateMenuPosition();
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
+    return () => {
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
+    };
+  }, [open, debouncedQuery]);
 
   function selectPlayer(player: SearchPlayer) {
     setOpen(false);
@@ -87,6 +130,7 @@ export function PlayerSearch({
   return (
     <div ref={containerRef} className="relative">
       <input
+        ref={inputRef}
         type="search"
         value={query}
         placeholder={placeholder}
@@ -114,36 +158,54 @@ export function PlayerSearch({
         className="w-full rounded-lg border border-line bg-surface-2 px-3 py-1.5 text-sm placeholder:text-muted focus:border-accent focus:outline-none"
       />
 
-      {open && debouncedQuery.length >= 2 && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-full overflow-hidden rounded-xl border border-line bg-surface-2 shadow-xl">
-          {results === undefined ? (
-            <p className="px-4 py-3 text-sm text-muted">Searching...</p>
-          ) : results.length === 0 ? (
-            <p className="px-4 py-3 text-sm text-muted">No players found.</p>
-          ) : (
-            <ul>
-              {results.map((player, index) => (
-                <li key={player.id}>
-                  <button
-                    type="button"
-                    onClick={() => selectPlayer(player)}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm ${
-                      index === activeIndex ? "bg-surface-3" : ""
-                    }`}
-                  >
-                    <Avatar
-                      playerId={player.id}
-                      className="h-7 w-7 rounded-md bg-surface-3 object-cover"
-                    />
-                    <span className="font-medium">{player.name}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+      {open &&
+        debouncedQuery.length >= 2 &&
+        menuPosition &&
+        createPortal(
+          <div
+            ref={menuRef}
+            style={{
+              top: menuPosition.top,
+              left: menuPosition.left,
+              width: menuPosition.width,
+            }}
+            className="fixed z-[60] max-h-[min(24rem,calc(100vh-5rem))] overflow-y-auto rounded-xl border border-line bg-surface-2 shadow-xl"
+          >
+            {isFetching && results === undefined ? (
+              <p className="px-4 py-3 text-sm text-muted">Searching...</p>
+            ) : error ? (
+              <p role="alert" className="px-4 py-3 text-sm text-red-300">
+                {error instanceof ApiError
+                  ? error.message
+                  : "Could not search players. Please try again."}
+              </p>
+            ) : results?.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-muted">No players found.</p>
+            ) : (
+              <ul>
+                {results?.map((player, index) => (
+                  <li key={player.id}>
+                    <button
+                      type="button"
+                      onClick={() => selectPlayer(player)}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm ${
+                        index === activeIndex ? "bg-surface-3" : ""
+                      }`}
+                    >
+                      <Avatar
+                        playerId={player.id}
+                        className="h-7 w-7 rounded-md bg-surface-3 object-cover"
+                      />
+                      <span className="font-medium">{player.name}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
