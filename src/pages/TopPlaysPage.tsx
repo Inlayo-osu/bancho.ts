@@ -128,8 +128,8 @@ function TopPlayRow({ rank, score }: { rank: number; score: ScoreDetail }) {
 
   return (
     <Card padded={false} className="overflow-hidden">
-      <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-4">
-        <div className="flex items-center gap-3 sm:min-w-[8rem]">
+      <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-3">
+        <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/15 text-sm font-bold text-accent">
             #{rank}
           </span>
@@ -137,9 +137,6 @@ function TopPlayRow({ rank, score }: { rank: number; score: ScoreDetail }) {
             playerId={player.id}
             className="h-11 w-11 rounded-lg border border-line bg-surface-2 object-cover"
           />
-        </div>
-
-        <div className="flex items-center gap-3">
           <BeatmapThumb
             setId={beatmap.set_id}
             className="h-16 w-24 shrink-0 rounded-xl border border-line bg-surface-2"
