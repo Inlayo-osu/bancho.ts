@@ -49,7 +49,7 @@ function getRouteMeta(pathname: string, appName: string): RouteMeta {
   if (pathname === "/chat") {
     return {
       title: "Chat",
-      description: `Chat with players and browse public channel conversations on ${appName}.`,
+      description: `Start private conversations and keep in touch with players on ${appName}.`,
       noIndex: true,
     };
   }

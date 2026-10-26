@@ -299,7 +299,7 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
   if (pathname === "/chat") {
     return {
       title: `Chat | ${appName}`,
-      description: `Chat with players and browse public channels on ${appName}.`,
+      description: `Start private conversations and keep in touch with players on ${appName}.`,
       type: "website",
       noIndex: true,
     };
