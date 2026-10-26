@@ -32,18 +32,19 @@ import {
 } from "@/lib/gamemodes";
 import { getLevel } from "@/lib/level";
 import { describeStatus } from "@/lib/playerStatus";
+import { useAuth } from "@/lib/auth";
 import { usePageTitle } from "@/lib/usePageTitle";
-/* import { useAuth } from "@/lib/auth"; */
 
 type ScoresTab = ScoreScope | "most_played";
 
 const SCORE_TABS: { tab: ScoresTab; label: string }[] = [
-  { tab: "best", label: "Best scores" },
-  { tab: "recent", label: "Recent scores" },
+  { tab: "best", label: "Top Play" },
+  { tab: "recent", label: "Recent Play" },
   { tab: "most_played", label: "Most played" },
 ];
 
 export function PlayerPage() {
+  const { player: currentPlayer } = useAuth();
   const params = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   // profiles resolve by numeric id or by username
@@ -239,7 +240,7 @@ export function PlayerPage() {
           </div>
 
           <div className="flex items-center gap-3 text-right">
-            {/* {player.id !== (useAuth().player?.id ?? -1) && (
+            {currentPlayer && player.id !== currentPlayer.id && (
               <Link
                 to={`/chat?userId=${player.id}`}
                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface-2 text-base text-slate-100 transition-colors hover:border-accent/60 hover:bg-surface-3"
@@ -248,7 +249,7 @@ export function PlayerPage() {
               >
                 <span aria-hidden="true">✉</span>
               </Link>
-            )} */}
+            )}
             <FriendButton playerId={player.id} />
             <div className="space-y-0.5">
               <p className="text-[11px] uppercase tracking-wider text-muted">
@@ -328,7 +329,10 @@ export function PlayerPage() {
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
             About me
           </h2>
-          <UserpageContent content={player.userpage_content} />
+          <UserpageContent
+            content={player.userpage_content}
+            playerName={player.name}
+          />
         </Card>
       )}
 
@@ -416,7 +420,13 @@ function ScoreList({
   const { data, isPending, error } = useQuery({
     queryKey: ["player-scores", playerId, modeId, scope],
     queryFn: () =>
-      api.fetchPlayerScores(playerId, { scope, mode: modeId, limit: 50 }),
+      api.fetchPlayerScores(playerId, {
+        scope,
+        mode: modeId,
+        limit: 10,
+        ppOnly: true,
+        includeFailed: false,
+      }),
     select: (envelope) => envelope.data,
   });
 

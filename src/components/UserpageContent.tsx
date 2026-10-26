@@ -2,8 +2,8 @@ import { Fragment } from "react";
 
 const URL_PATTERN = /(https?:\/\/[^\s<>"']+)/g;
 
-function renderLinkText(content: string) {
-  const parts = content.split(URL_PATTERN);
+function renderLinkText(content: string, playerName: string) {
+  const parts = content.replace(/\[me\]/gi, playerName).split(URL_PATTERN);
   return parts.map((part, index) =>
     index % 2 === 1 ? (
       <a
@@ -22,14 +22,19 @@ function renderLinkText(content: string) {
 }
 
 /**
- * Render a player's userpage as safe plain text: whitespace preserved,
- * urls clickable. (bancho.py stores raw text; full BBCode rendering is
- * intentionally out of scope for now.)
+ * Render a player's userpage as safe plain text with clickable URLs and
+ * the [me] BBCode token expanded to the player's name.
  */
-export function UserpageContent({ content }: { content: string }) {
+export function UserpageContent({
+  content,
+  playerName,
+}: {
+  content: string;
+  playerName: string;
+}) {
   return (
     <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-200">
-      {renderLinkText(content)}
+      {renderLinkText(content, playerName)}
     </p>
   );
 }

@@ -4,6 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 import { Avatar } from "@/components/Avatar";
 import { api } from "@/lib/api/client";
+import type { SearchPlayer } from "@/lib/api/types";
+
+interface PlayerSearchProps {
+  onSelect?: (player: SearchPlayer) => void;
+  placeholder?: string;
+}
 
 function useDebounced<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -14,7 +20,10 @@ function useDebounced<T>(value: T, delayMs: number): T {
   return debounced;
 }
 
-export function PlayerSearch() {
+export function PlayerSearch({
+  onSelect,
+  placeholder = "Search players...",
+}: PlayerSearchProps) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   // -1 = no result selected; enter searches the raw text
@@ -42,6 +51,17 @@ export function PlayerSearch() {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  function selectPlayer(player: SearchPlayer) {
+    setOpen(false);
+    setQuery("");
+    setActiveIndex(-1);
+    if (onSelect) {
+      onSelect(player);
+    } else {
+      goToPlayer(player.id);
+    }
+  }
+
   function goToPlayer(playerIdOrName: number | string) {
     setOpen(false);
     setQuery("");
@@ -51,7 +71,12 @@ export function PlayerSearch() {
 
   function submit() {
     if (activeIndex >= 0 && results?.[activeIndex]) {
-      goToPlayer(results[activeIndex].id);
+      selectPlayer(results[activeIndex]);
+    } else if (onSelect) {
+      const exactMatch = results?.find(
+        (player) => player.name.toLowerCase() === query.trim().toLowerCase(),
+      );
+      if (exactMatch) selectPlayer(exactMatch);
     } else if (query.trim().length > 0) {
       // no selection: go straight to the typed name's profile,
       // whatever the current results are
@@ -64,7 +89,7 @@ export function PlayerSearch() {
       <input
         type="search"
         value={query}
-        placeholder="Search players..."
+        placeholder={placeholder}
         onChange={(event) => {
           setQuery(event.target.value);
           setOpen(true);
@@ -101,7 +126,7 @@ export function PlayerSearch() {
                 <li key={player.id}>
                   <button
                     type="button"
-                    onClick={() => goToPlayer(player.id)}
+                    onClick={() => selectPlayer(player)}
                     onMouseEnter={() => setActiveIndex(index)}
                     className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm ${
                       index === activeIndex ? "bg-surface-3" : ""

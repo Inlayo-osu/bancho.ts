@@ -68,9 +68,11 @@ export function TopPlaysPage() {
   const { data, isPending, error } = useQuery({
     queryKey: ["top-plays", modeId],
     queryFn: async () => {
-      const response = await api.fetchTopPlays(modeId, { limit: 12 });
+      const response = await api.fetchTopPlays(modeId, { limit: 10 });
       return response.data.filter((score): score is ScoreDetail => !!score);
     },
+    staleTime: 60 * 60 * 1000,
+    refetchInterval: 60 * 60 * 1000,
   });
 
   usePageTitle(`${modeName(modeId)} Top Plays`, {

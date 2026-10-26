@@ -73,12 +73,20 @@ export const api = {
 
   fetchPlayerScores: (
     playerId: number,
-    options: { scope: ScoreScope; mode: number; limit?: number },
+    options: {
+      scope: ScoreScope;
+      mode: number;
+      limit?: number;
+      ppOnly?: boolean;
+      includeFailed?: boolean;
+    },
   ) =>
     apiGet<PlayerScore[]>(`/v2/players/${playerId}/scores`, {
       scope: options.scope,
       mode: options.mode,
       limit: options.limit,
+      pp_only: options.ppOnly,
+      include_failed: options.includeFailed,
     }),
 
   fetchPlayerMostPlayed: (
@@ -192,10 +200,16 @@ export const api = {
   fetchChatChannelMessages: (channelName: string, limit = 100) =>
     apiGet<ChatMessage[]>(`/v2/chat/channels/${encodeURIComponent(channelName)}/messages`, { limit }),
 
+  sendChatChannelMessage: (channelName: string, message: string) =>
+    apiPost<ChatMessage>(
+      `/v2/chat/channels/${encodeURIComponent(channelName)}/messages`,
+      { message },
+    ),
+
   fetchTopPlays: (mode: number, options: { limit?: number } = {}) =>
     apiGet<ScoreDetail[]>("/v2/scores/top-plays", {
       mode,
-      limit: options.limit ?? 12,
+      limit: options.limit ?? 10,
     }),
 
   deleteCurrentSession: () => apiDelete<null>("/v2/sessions/current"),
