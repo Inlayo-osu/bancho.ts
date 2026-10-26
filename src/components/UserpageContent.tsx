@@ -517,7 +517,7 @@ export function UserpageContent({
   playerName: string;
 }) {
   return (
-    <div className="break-words text-sm leading-relaxed text-slate-200 [&_p]:my-1">
+    <div className="break-words whitespace-pre-wrap text-sm leading-relaxed text-slate-200 [&_p]:my-1">
       {renderNodes(parseBbCode(content), playerName)}
     </div>
   );
