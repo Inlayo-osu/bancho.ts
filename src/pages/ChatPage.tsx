@@ -238,26 +238,6 @@ export function ChatPage() {
     setDraft("");
   }
 
-  function selectChannel(channelName: string) {
-    setSelectedUserId(null);
-    setSelectedChannel(channelName);
-    setSendError(null);
-    setSearchParams((current) => {
-      current.delete("userId");
-      return current;
-    });
-  }
-
-  function channelMessageAllowed() {
-    return (
-      !!player &&
-      !!activeChannel &&
-      (player.priv & 1) !== 0 &&
-      (activeChannel.write_priv === 0 ||
-        (player.priv & activeChannel.write_priv) !== 0)
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div>
