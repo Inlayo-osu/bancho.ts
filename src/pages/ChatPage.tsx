@@ -42,6 +42,7 @@ export function ChatPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedChannel, setSelectedChannel] = useState<string>("#lobby");
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [newConversationUser, setNewConversationUser] = useState<SearchPlayer | null>(null);
   const [draft, setDraft] = useState("");
   const [showNewConversation, setShowNewConversation] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -164,6 +165,7 @@ export function ChatPage() {
   const activePending = selectedUserId !== null ? dmMessagesPending : messagesPending;
 
   function openConversation(target: SearchPlayer) {
+    setNewConversationUser(target);
     setSelectedUserId(target.id);
     setShowNewConversation(false);
     setSendError(null);
@@ -246,14 +248,14 @@ export function ChatPage() {
           Server channels and public chat history.
         </p>
     </div>
-      <div className="overflow-hidden rounded-[28px] border border-line bg-surface shadow-[0_18px_38px_rgba(15,23,42,0.35)]">
-        <div className="grid min-h-[620px] grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="border-r border-line bg-surface-2/60">
+      <div className="h-[calc(100vh-14rem)] min-h-[520px] max-h-[900px] overflow-hidden rounded-[28px] border border-line bg-surface shadow-[0_18px_38px_rgba(15,23,42,0.35)]">
+        <div className="grid h-full min-h-0 grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="flex min-h-0 flex-col border-r border-line bg-surface-2/60">
             <div className="border-b border-line px-4 py-3">
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Channels</p>
             </div>
 
-            <div className="flex-1 space-y-1 overflow-y-auto p-2">
+            <div className="min-h-0 flex-[0.8] space-y-1 overflow-y-auto p-2">
               {channelsPending ? (
                 <div className="px-3 py-2 text-sm text-muted">Loading channels...</div>
               ) : (
@@ -286,43 +288,46 @@ export function ChatPage() {
               <p className="text-[11px] uppercase tracking-[0.18em] text-muted">Messages</p>
             </div>
 
-            <div className="flex-1 space-y-1 overflow-y-auto p-2">
-              {mailPending ? (
-                <div className="px-3 py-2 text-sm text-muted">Loading messages...</div>
-              ) : sortedDMThreads.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-muted">No direct messages yet.</div>
-              ) : (
-                sortedDMThreads.map((thread) => (
-                  <button
-                    key={thread.user_id}
-                    type="button"
-                    onClick={() => {
-                      setSelectedUserId(thread.user_id);
-                      setSendError(null);
-                      setShowNewConversation(false);
-                      setSearchParams({ userId: String(thread.user_id) });
-                    }}
-                    className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left transition-colors ${
-                      selectedUserId === thread.user_id
-                        ? "bg-surface-3 text-slate-100"
-                        : "text-muted hover:bg-surface-3 hover:text-slate-100"
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-center gap-2">
-                      <Avatar
-                        playerId={thread.user_id}
-                        className="h-7 w-7 rounded border border-line bg-surface-2 object-cover flex-shrink-0"
-                      />
-                      <span className="truncate font-medium">{thread.name}</span>
-                    </div>
-                    {thread.unread_count > 0 && (
-                      <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white flex-shrink-0">
-                        {thread.unread_count}
-                      </span>
-                    )}
-                  </button>
-                ))
-              )}
+            <div className="flex min-h-0 flex-[1.2] flex-col">
+              <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
+                {mailPending ? (
+                  <div className="px-3 py-2 text-sm text-muted">Loading messages...</div>
+                ) : sortedDMThreads.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-muted">No direct messages yet.</div>
+                ) : (
+                  sortedDMThreads.map((thread) => (
+                    <button
+                      key={thread.user_id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedUserId(thread.user_id);
+                        setNewConversationUser(null);
+                        setSendError(null);
+                        setShowNewConversation(false);
+                        setSearchParams({ userId: String(thread.user_id) });
+                      }}
+                      className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left transition-colors ${
+                        selectedUserId === thread.user_id
+                          ? "bg-surface-3 text-slate-100"
+                          : "text-muted hover:bg-surface-3 hover:text-slate-100"
+                      }`}
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <Avatar
+                          playerId={thread.user_id}
+                          className="h-7 w-7 flex-shrink-0 rounded border border-line bg-surface-2 object-cover"
+                        />
+                        <span className="truncate font-medium">{thread.name}</span>
+                      </div>
+                      {thread.unread_count > 0 && (
+                        <span className="flex-shrink-0 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          {thread.unread_count}
+                        </span>
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
               <button
                 type="button"
                 disabled={!player}
@@ -332,7 +337,7 @@ export function ChatPage() {
                 + New conversation
               </button>
               {showNewConversation && (
-                <div className="rounded-xl border border-line bg-surface-2/40 p-3">
+                <div className="flex-shrink-0 border-t border-line bg-surface-2/40 p-3">
                   <PlayerSearch
                     placeholder="Search a player..."
                     onSelect={openConversation}
@@ -342,22 +347,27 @@ export function ChatPage() {
             </div>
           </aside>
 
-          <main className="flex min-h-0 flex-col">
+          <main className="flex min-h-0 flex-col overflow-hidden">
             {selectedUserId !== null ? (
               <>
                 <header className="flex items-center gap-3 border-b border-line px-4 py-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-line bg-surface-2 text-[10px] font-bold uppercase tracking-wide text-muted">
-                    DM
-                  </div>
+                  <Avatar
+                    playerId={selectedUserId}
+                    className="h-10 w-10 rounded-lg border border-line bg-surface-2 object-cover"
+                  />
                   <div>
                     <h2 className="text-base font-semibold text-slate-100">
-                      {activeDmThread?.name ?? selectedUser?.name ?? "Loading user..."}
+                      {activeDmThread?.name ??
+                        (newConversationUser?.id === selectedUserId
+                          ? newConversationUser.name
+                          : selectedUser?.name) ??
+                        "Loading user..."}
                     </h2>
                     <p className="text-[11px] uppercase tracking-[0.14em] text-muted">Direct message</p>
                   </div>
                 </header>
 
-                <div className="flex-1 space-y-3 overflow-y-auto bg-canvas px-4 py-4">
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-canvas px-4 py-4">
                   {activePending ? (
                     <div className="text-sm text-muted">Loading messages...</div>
                   ) : activeMessages.length === 0 ? (
@@ -461,7 +471,7 @@ export function ChatPage() {
                   {activeChannel.topic || "No topic set."}
                 </div>
 
-                <div className="flex-1 space-y-3 overflow-y-auto bg-canvas px-4 py-4">
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-canvas px-4 py-4">
                   {messagesPending ? (
                     <div className="text-sm text-muted">Loading messages...</div>
                   ) : messages.length === 0 ? (
