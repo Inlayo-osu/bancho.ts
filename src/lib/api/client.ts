@@ -77,6 +77,7 @@ export const api = {
       scope: ScoreScope;
       mode: number;
       limit?: number;
+      offset?: number;
       ppOnly?: boolean;
       includeFailed?: boolean;
     },
@@ -85,6 +86,7 @@ export const api = {
       scope: options.scope,
       mode: options.mode,
       limit: options.limit,
+      offset: options.offset,
       pp_only: options.ppOnly,
       include_failed: options.includeFailed,
     }),

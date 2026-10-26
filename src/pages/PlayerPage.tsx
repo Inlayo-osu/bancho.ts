@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
@@ -422,22 +422,33 @@ function ScoreList({
   modeId: number;
   scope: ScoreScope;
 }) {
-  const { data, isPending, error } = useQuery({
+  const {
+    data,
+    isPending,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
     queryKey: ["player-scores", playerId, modeId, scope],
-    queryFn: () =>
+    queryFn: ({ pageParam }) =>
       api.fetchPlayerScores(playerId, {
         scope,
         mode: modeId,
-        limit: 10,
+        limit: 11,
+        offset: pageParam,
         ppOnly: true,
         includeFailed: false,
-      }),
-    select: (envelope) => envelope.data,
+      }).then((response) => response.data),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length > 10 ? allPages.length * 10 : undefined,
   });
 
   if (isPending) return <LoadingState label="Loading scores..." />;
   if (error) return <ErrorState error={error} />;
-  if (data.length === 0) {
+  const scores = data.pages.flatMap((page) => page.slice(0, 10));
+  if (scores.length === 0) {
     return (
       <EmptyState
         label={
@@ -450,11 +461,25 @@ function ScoreList({
   }
 
   return (
-    <ul className="space-y-1.5">
-      {data.map((score) => (
-        <ScoreRow key={score.id} score={score} modeId={modeId} />
-      ))}
-    </ul>
+    <div className="space-y-4">
+      <ul className="space-y-1.5">
+        {scores.map((score) => (
+          <ScoreRow key={score.id} score={score} modeId={modeId} />
+        ))}
+      </ul>
+      {hasNextPage && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => void fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="rounded-xl border border-line bg-surface px-5 py-2.5 text-sm font-semibold text-slate-100 transition-colors hover:bg-surface-2 disabled:cursor-wait disabled:opacity-60"
+          >
+            {isFetchingNextPage ? "Loading scores..." : "Load 10 more"}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
