@@ -37,6 +37,18 @@ export function ClanPage() {
 
   usePageTitle(
     clanQuery.data ? `[${clanQuery.data.tag}] ${clanQuery.data.name}` : undefined,
+    {
+      description: clanQuery.data
+        ? [
+            `[${clanQuery.data.tag}] ${clanQuery.data.name} is a player clan on this server.`,
+            membersQuery.data
+              ? `${membersQuery.data.length} members.`
+              : null,
+          ]
+            .filter((part): part is string => part !== null)
+            .join(" ")
+        : undefined,
+    },
   );
 
   if (!Number.isInteger(clanId) || clanId <= 0) {

@@ -11,7 +11,6 @@ import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { api } from "@/lib/api/client";
 import type { ScoreDetail } from "@/lib/api/types";
-import { avatarUrl } from "@/lib/assets";
 import {
   formatAccuracy,
   formatNumber,
@@ -76,8 +75,7 @@ export function TopPlaysPage() {
   });
 
   usePageTitle(`${modeName(modeId)} Top Plays`, {
-    image: data?.[0] ? avatarUrl(data[0].player.id) : undefined,
-    twitterCard: "summary",
+    description: `Browse the top ${modeName(modeId)} scores recently recorded on this server.`,
   });
 
   function setMode(nextModeId: number) {

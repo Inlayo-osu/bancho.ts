@@ -37,7 +37,7 @@ export function ScorePage() {
       : undefined,
     {
       description: data
-        ? `${data.beatmap.artist} - ${data.beatmap.title} [${data.beatmap.version}] | ${formatNumber(data.score)} score | ${formatAccuracy(data.acc)} accuracy | ${modeName(data.mode)} | ${formatPerformance(data.pp)} | Grade ${data.grade} | ${formatNumber(data.max_combo)}x combo | ${formatNumber(data.nmiss)} misses by ${data.player.name}`
+        ? `${data.player.name} scored ${formatNumber(data.score)} (${formatAccuracy(data.acc)} accuracy, ${formatPerformance(data.pp)}, grade ${data.grade}) on ${data.beatmap.artist} - ${data.beatmap.title} [${data.beatmap.version}].`
         : undefined,
       image: data ? beatmapCoverUrl(data.beatmap.set_id) : undefined,
     },

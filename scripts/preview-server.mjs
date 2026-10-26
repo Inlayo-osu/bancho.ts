@@ -50,7 +50,7 @@ function escapeHtml(value) {
 }
 
 function metaTag(attribute, key, content) {
-  return `<meta ${attribute}="${attribute === "property" ? key : key}" content="${escapeHtml(content)}" />`;
+  return `<meta ${attribute}="${key}" content="${escapeHtml(content)}" />`;
 }
 
 function modeName(modeId) {
@@ -99,21 +99,48 @@ function injectMeta(html, {
   twitterCard,
   url,
   type = "website",
+  noIndex = false,
 }) {
   const tags = [
     `<title>${escapeHtml(title)}</title>`,
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     metaTag("name", "description", description),
+    metaTag("name", "robots", noIndex ? "noindex, nofollow" : "index, follow"),
     metaTag("property", "og:title", title),
     metaTag("property", "og:description", description),
     metaTag("property", "og:url", url),
     metaTag("property", "og:type", type),
+    metaTag("property", "og:site_name", appName),
+    metaTag("property", "og:locale", "en_US"),
     metaTag("name", "twitter:card", twitterCard || (image ? "summary_large_image" : "summary")),
     metaTag("name", "twitter:title", title),
     metaTag("name", "twitter:description", description),
     ...(image ? [metaTag("property", "og:image", image), metaTag("name", "twitter:image", image)] : []),
   ].join("\n    ");
-  return html.replace(/<title>.*?<\/title>/s, "").replace("</head>", `    ${tags}\n  </head>`);
+  const managedNames = [
+    "description",
+    "robots",
+    "og:title",
+    "og:description",
+    "og:url",
+    "og:type",
+    "og:site_name",
+    "og:locale",
+    "og:image",
+    "twitter:card",
+    "twitter:title",
+    "twitter:description",
+    "twitter:image",
+  ].join("|");
+  const managedMeta = new RegExp(
+    `<meta\\b(?=[^>]*\\b(?:name|property)=["'](?:${managedNames})["'])[^>]*>`,
+    "gi",
+  );
+  const cleanHtml = html
+    .replace(/<title>.*?<\/title>/is, "")
+    .replace(/<link\b(?=[^>]*\brel=["']canonical["'])[^>]*>/gi, "")
+    .replace(managedMeta, "");
+  return cleanHtml.replace("</head>", `    ${tags}\n  </head>`);
 }
 
 async function fetchJson(pathname) {
@@ -142,7 +169,6 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
       return {
         title: `Player ${playerId} | ${appName}`,
         description: `View player ${playerId}'s profile on ${appName}.`,
-        image: `${process.env.VITE_AVATARS_BASE_URL || "https://a.inlayo.com"}/${encodeURIComponent(playerId)}`,
         twitterCard: "summary",
         type: "profile",
       };
@@ -152,10 +178,23 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
       stats = (await fetchJson(`/v2/players/${player.id}/stats`)).find(
         (entry) => entry.mode === modeIdFromParams(searchParams),
       );
-    } catch {}
+    } catch (error) {
+      console.error(`Could not load player stats for ${pathname}:`, error);
+    }
+    const description = [
+      `${player.name}'s osu! player profile on ${appName}.`,
+      player.country && player.country.toLowerCase() !== "xx"
+        ? `${countryName(player.country)} player.`
+        : null,
+      stats?.rank != null ? `Global rank #${stats.rank}.` : null,
+      stats?.country_rank != null ? `Country rank #${stats.country_rank}.` : null,
+      stats?.pp != null ? `${Math.round(stats.pp)}pp.` : null,
+    ]
+      .filter(Boolean)
+      .join(" ");
     return {
       title: `${player.name}'s profile | ${appName}`,
-      description: `${player.name} | ${countryName(player.country)} (${player.country.toUpperCase()}) | Global rank ${stats?.rank != null ? `#${stats.rank}` : "-"} | Country rank ${stats?.country_rank != null ? `#${stats.country_rank}` : "-"} | ${stats?.pp != null ? `${Math.round(stats.pp)}pp` : "No PP yet"} | ${stats?.acc != null ? `${Number(stats.acc).toFixed(2)}% accuracy` : ""} | ${stats?.plays != null ? `${stats.plays} plays` : ""}${player.clan_id ? ` | Clan #${player.clan_id}` : ""}`,
+      description,
       image: avatarUrl(player.id),
       twitterCard: "summary",
       type: "profile",
@@ -176,7 +215,7 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
     }
     return {
       title: `${map.artist} - ${map.title} [${map.version}] | ${appName}`,
-      description: `${map.artist} - ${map.title} [${map.version}] | ${Number(map.diff).toFixed(2)}★ | ${Math.round(map.bpm)} BPM | ${mapLength(map.total_length)} | CS ${Number(map.cs).toFixed(1)} | AR ${Number(map.ar).toFixed(1)} | OD ${Number(map.od).toFixed(1)} | HP ${Number(map.hp).toFixed(1)} | mapped by ${map.creator}`,
+      description: `${map.artist} - ${map.title} [${map.version}], mapped by ${map.creator}. ${Number(map.diff).toFixed(2)}★, ${Math.round(map.bpm)} BPM, ${mapLength(map.total_length)}.`,
       image: `https://assets.ppy.sh/beatmaps/${map.set_id}/covers/cover.jpg`,
     };
   }
@@ -195,7 +234,7 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
     }
     return {
       title: `${score.player.name} on ${score.beatmap.artist} - ${score.beatmap.title} | ${appName}`,
-      description: `${score.beatmap.artist} - ${score.beatmap.title} [${score.beatmap.version}] | ${Math.round(score.score)} score | ${Number(score.acc).toFixed(2)}% accuracy | ${modeName(score.mode)} | ${Math.round(score.pp)}pp | Grade ${score.grade} | ${score.max_combo}x combo | ${score.nmiss} misses | ${score.player.name}`,
+      description: `${score.player.name} scored ${Math.round(score.score)} (${Number(score.acc).toFixed(2)}% accuracy, ${Math.round(score.pp)}pp, grade ${score.grade}) on ${score.beatmap.artist} - ${score.beatmap.title} [${score.beatmap.version}].`,
       image: `https://assets.ppy.sh/beatmaps/${score.beatmap.set_id}/covers/cover.jpg`,
     };
   }
@@ -205,26 +244,21 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
     const sort = searchParams.get("sort") || "pp";
     const country = searchParams.get("country");
     const mode = modeName(modeId);
-    let description = `${mode} leaderboard on ${appName} | sorted by ${sort}`;
-    if (country) description += ` | country ${country.toUpperCase()}`;
-    try {
-      const entries = await fetchJson(`/v2/leaderboards/${modeId}?sort=${encodeURIComponent(sort)}&page=1&page_size=1${country ? `&country=${encodeURIComponent(country)}` : ""}`);
-      const top = entries[0];
-      if (top) description += ` | #1 ${top.name} with ${Math.round(top.pp)}pp`;
-      const image = top ? avatarUrl(top.player_id) : undefined;
-      return {
-        title: `${mode} leaderboard | ${appName}`,
-        description,
-        image,
-        twitterCard: "summary",
-        type: "website",
-      };
-    } catch (error) {
-      console.error(`Could not load leaderboard metadata for ${pathname}:`, error);
-    }
+    const sortLabels = {
+      pp: "performance points",
+      rscore: "ranked score",
+      tscore: "total score",
+      acc: "accuracy",
+      plays: "play count",
+      playtime: "play time",
+    };
+    const sortLabel = Object.prototype.hasOwnProperty.call(sortLabels, sort)
+      ? sortLabels[sort]
+      : "performance points";
+    const countryText = country ? ` for ${country.toUpperCase()}` : "";
     return {
-      title: `${mode} leaderboard | ${appName}`,
-      description,
+      title: `${mode} Leaderboard | ${appName}`,
+      description: `Browse the ${mode} leaderboard${countryText} on ${appName}, ranked by ${sortLabel}.`,
       type: "website",
     };
   }
@@ -233,27 +267,22 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
     const modeId = modeIdFromParams(searchParams);
     const mode = modeName(modeId);
     try {
-      const leaderboardEntries = await fetchJson(`/v2/leaderboards/${modeId}?sort=pp&page=1&page_size=1`);
-      const topPlayer = leaderboardEntries[0];
-      if (!topPlayer) {
+      const scores = await fetchJson(`/v2/scores/top-plays?mode=${modeId}&limit=1`);
+      const topScore = scores[0];
+      if (!topScore) {
         return {
           title: `${mode} Top Plays | ${appName}`,
-          description: `Top plays for ${mode} on ${appName}.`,
+          description: `Explore standout ${mode} scores on ${appName}.`,
           type: "website",
         };
       }
 
-      const playerScores = await fetchJson(`/v2/players/${topPlayer.player_id}/scores?scope=best&mode=${modeId}&limit=1`);
-      const topScore = playerScores[0];
-      const beatmap = topScore?.beatmap;
-      const image = beatmap
-        ? `https://assets.ppy.sh/beatmaps/${beatmap.set_id}/covers/cover.jpg`
-        : avatarUrl(topPlayer.player_id);
+      const beatmap = topScore.beatmap;
 
       return {
-        title: `${mode} Top Play | ${appName}`,
-        description: `${topPlayer.name} is leading ${mode} with ${Math.round(topPlayer.pp)}pp${topScore && beatmap ? ` on ${beatmap.artist} - ${beatmap.title} [${beatmap.version}]` : ""}.`,
-        image,
+        title: `${mode} Top Plays | ${appName}`,
+        description: `Top ${mode} play by ${topScore.player.name}: ${beatmap.artist} - ${beatmap.title} [${beatmap.version}], ${Math.round(topScore.pp)}pp.`,
+        image: `https://assets.ppy.sh/beatmaps/${beatmap.set_id}/covers/cover.jpg`,
         twitterCard: "summary_large_image",
         type: "website",
       };
@@ -270,10 +299,9 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
   if (pathname === "/chat") {
     return {
       title: `Chat | ${appName}`,
-      description: `Join public channels and private conversations on ${appName}.`,
-      image: `${process.env.VITE_AVATARS_BASE_URL || "https://a.inlayo.com"}/1`,
-      twitterCard: "summary",
+      description: `Chat with players and browse public channels on ${appName}.`,
       type: "website",
+      noIndex: true,
     };
   }
 
@@ -311,78 +339,86 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
     }
     return {
       title: `[${clan.tag}] ${clan.name} | ${appName}`,
-      description: `[${clan.tag}] ${clan.name} clan on ${appName}.`,
+      description: `[${clan.tag}] ${clan.name} is a player-run clan on ${appName}.`,
       type: "profile",
     };
   }
 
   const pageMetadata = {
     "/": {
-      title: appName,
-      description: `${appName} osu! server with player profiles, leaderboards, beatmaps, and scores.`,
+      title: `${appName} · osu! community server`,
+      description: `Play osu! on ${appName}, set scores, and explore community leaderboards, players, and beatmaps.`,
       type: "website",
     },
     "/login": {
       title: `Sign in | ${appName}`,
-      description: `Sign in to your ${appName} account.`,
+      description: `Sign in to your ${appName} account to chat, manage friends, and play.`,
       type: "website",
+      noIndex: true,
     },
     "/register": {
-      title: `Register | ${appName}`,
-      description: `Create an account on ${appName}.`,
+      title: `Create account | ${appName}`,
+      description: `Create a ${appName} account to join the osu! community and set scores.`,
       type: "website",
+      noIndex: true,
     },
     "/forgot-password": {
       title: `Reset password | ${appName}`,
       description: `Reset your ${appName} account password.`,
       type: "website",
+      noIndex: true,
     },
     "/verify-email": {
       title: `Verify email | ${appName}`,
       description: `Verify your email address for ${appName}.`,
       type: "website",
+      noIndex: true,
     },
     "/friends": {
       title: `Friends | ${appName}`,
-      description: `View your friends on ${appName}.`,
+      description: `Manage your ${appName} friends list and visit player profiles.`,
       type: "website",
-    },
-    "/chat": {
-      title: `Chat | ${appName}`,
-      description: `Join public channels and private conversations on ${appName}.`,
-      type: "website",
+      noIndex: true,
     },
     "/users": {
-      title: `Users | ${appName}`,
-      description: `Browse all registered players on ${appName}.`,
+      title: searchParams.get("online") === "1"
+        ? `Online players | ${appName}`
+        : `Players | ${appName}`,
+      description: searchParams.get("online") === "1"
+        ? `See which players are currently online on ${appName}.`
+        : `Browse registered players on ${appName}.`,
       type: "website",
     },
     "/settings": {
-      title: `Settings | ${appName}`,
+      title: `Account settings | ${appName}`,
       description: `Manage your ${appName} account and profile.`,
       type: "website",
+      noIndex: true,
     },
   };
-  if (pageMetadata[pathname]) return pageMetadata[pathname];
+  if (Object.prototype.hasOwnProperty.call(pageMetadata, pathname)) {
+    return pageMetadata[pathname];
+  }
 
   return {
     title: `Page not found | ${appName}`,
     description: `The requested page could not be found on ${appName}.`,
+    noIndex: true,
   };
 }
 
 async function serve(request, response) {
   const requestUrl = new URL(request.url, siteUrl);
   const pathname = decodeURIComponent(requestUrl.pathname);
-  const template = await readFile(path.join(dist, "index.html"), "utf8");
   const userAgent = request.headers["user-agent"] || "";
 
-  if (botPattern.test(userAgent) || !path.extname(pathname)) {
+  if (botPattern.test(userAgent) && !path.extname(pathname)) {
     try {
       const metadata = await getMetadata(pathname, requestUrl.searchParams);
+      const template = await readFile(path.join(dist, "index.html"), "utf8");
       const html = injectMeta(template, {
         ...metadata,
-        url: `${siteUrl}${pathname}${requestUrl.search}`,
+        url: `${siteUrl}${pathname}`,
       });
       response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
       response.end(html);

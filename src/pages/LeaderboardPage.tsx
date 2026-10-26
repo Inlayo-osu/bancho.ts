@@ -12,7 +12,6 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { PillTabs } from "@/components/ui/PillTabs";
 import { api, type LeaderboardSort } from "@/lib/api/client";
 import type { LeaderboardEntry } from "@/lib/api/types";
-import { avatarUrl } from "@/lib/assets";
 import { COUNTRIES } from "@/lib/countries";
 import {
   isValidModeId,
@@ -123,8 +122,7 @@ export function LeaderboardPage() {
   });
 
   usePageTitle(`${modeName(modeId)} Leaderboard`, {
-    image: data?.[0] ? avatarUrl(data[0].player_id) : undefined,
-    twitterCard: "summary",
+    description: `See the ${modeName(modeId)} player leaderboard, with rankings for performance, accuracy, ranked score, and play count.`,
   });
 
   function updateParams(next: {

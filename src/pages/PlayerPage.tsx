@@ -159,16 +159,21 @@ export function PlayerPage() {
   });
 
   const player = playerQuery.data;
-  const profileStats = statsQuery.data?.find((entry) => entry.mode === 0);
+  const profileStats = statsQuery.data?.find((entry) => entry.mode === modeId);
   usePageTitle(player ? `${player.name}'s profile` : undefined, {
     description: player
-      ? `${player.name} | ${player.country} | Global rank ${
-          profileStats?.rank != null ? `#${formatNumber(profileStats.rank)}` : "-"
-        } | Country rank ${
+      ? [
+          `${player.name}'s osu! player profile.`,
+          profileStats?.rank != null
+            ? `Global rank #${formatNumber(profileStats.rank)}.`
+            : null,
           profileStats?.country_rank != null
-            ? `#${formatNumber(profileStats.country_rank)}`
-            : "-"
-        } | ${profileStats ? formatPerformance(profileStats.pp) : "No PP yet"}`
+            ? `Country rank #${formatNumber(profileStats.country_rank)}.`
+            : null,
+          profileStats ? `${formatPerformance(profileStats.pp)} performance.` : null,
+        ]
+          .filter((part): part is string => part !== null)
+          .join(" ")
       : undefined,
     image: player ? avatarUrl(player.id) : undefined,
     twitterCard: "summary",
