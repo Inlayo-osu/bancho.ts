@@ -313,8 +313,9 @@ function UserpageSection({ player }: { player: Player }) {
     <Card>
       <h2 className="font-semibold">Userpage</h2>
       <p className="mt-1 text-sm text-muted">
-        Shown in the "me!" tab on your profile. Links are clickable for
-        other players.
+        Shown in the "me!" tab on your profile. Supports BBCode formatting
+        such as [b]bold[/b], [i]italic[/i], [color=#ff66aa]color[/color], and
+        [url=https://osu.ppy.sh]links[/url]. Use [me] to insert your username.
       </p>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-3">
