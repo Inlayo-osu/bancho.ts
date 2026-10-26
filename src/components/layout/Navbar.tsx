@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { to: "/", label: "Home" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/topplays", label: "Top Plays" },
+  { to: "https://discord.gg/qPdNsutTte", label: "Discord" },
 ];
 
 export function Navbar() {
