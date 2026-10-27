@@ -35,6 +35,14 @@ import { describeStatus } from "@/lib/playerStatus";
 import { useAuth } from "@/lib/auth";
 import { usePageTitle } from "@/lib/usePageTitle";
 
+const ROLE_BADGES = [
+  { bit: 1 << 13, label: "admin", color: "#aaffff" },
+  { bit: 1 << 14, label: "dev", color: "#ffaaaa" },
+  { bit: 1 << 12, label: "gmt", color: "#aaffaa" },
+  { bit: 1 << 11, label: "bn", color: "#ffaaff" },
+  { bit: 1 << 2, label: "verified", color: "#ffffaa" },
+];
+
 type ScoresTab = ScoreScope | "most_played";
 
 const SCORE_TABS: { tab: ScoresTab; label: string }[] = [
@@ -227,6 +235,18 @@ export function PlayerPage() {
                     isOnline ? "bg-emerald-400" : "bg-surface-3"
                   }`}
                 />
+                {ROLE_BADGES.filter((badge) => (player.priv & badge.bit) !== 0).map(
+                  (badge) => (
+                    <span
+                      key={badge.label}
+                      title={badge.label}
+                      className="inline-flex h-4 items-center rounded px-1 text-[10px] font-semibold leading-none text-slate-950"
+                      style={{ backgroundColor: badge.color }}
+                    >
+                      {badge.label}
+                    </span>
+                  ),
+                )}
               </div>
               <p className="text-sm text-muted">
                 {isOnline && statusQuery.data ? (
