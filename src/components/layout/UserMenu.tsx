@@ -5,6 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Avatar } from "@/components/Avatar";
 import { useAuth } from "@/lib/auth";
 
+const ADMINISTRATOR = 1 << 13;
+
 export function UserMenu() {
   const { player, isLoading, logout } = useAuth();
   const navigate = useNavigate();
@@ -130,6 +132,15 @@ export function UserMenu() {
             >
               Settings
             </Link>
+            {(player.priv & ADMINISTRATOR) !== 0 && (
+              <Link
+                to="/admin"
+                onClick={() => setOpen(false)}
+                className="block px-4 py-2.5 text-sm hover:bg-surface-3"
+              >
+                Admin
+              </Link>
+            )}
             <button
               type="button"
               onClick={async () => {

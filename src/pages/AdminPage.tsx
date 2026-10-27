@@ -61,7 +61,7 @@ export function AdminPage() {
 
   const isAdmin =
     player !== null &&
-    (player.priv & (ADMINISTRATOR | DEVELOPER)) !== 0;
+    (player.priv & ADMINISTRATOR) !== 0;
 
   const userSearchQuery = useQuery({
     queryKey: ["admin-users", userSearch.trim()],
