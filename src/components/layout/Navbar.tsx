@@ -4,6 +4,7 @@ import { PlayerSearch } from "@/components/PlayerSearch";
 import { UserMenu } from "@/components/layout/UserMenu";
 import { useAuth } from "@/lib/auth";
 import { env } from "@/lib/env";
+import { discordInviteUrl } from "@/lib/links";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -44,7 +45,7 @@ export function Navbar() {
                 </NavLink>
               ))}
               <a
-                href="https://discord.gg/qPdNsutTte"
+                href={discordInviteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-lg px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:text-slate-100"

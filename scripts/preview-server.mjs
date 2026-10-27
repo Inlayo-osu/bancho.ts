@@ -23,6 +23,7 @@ const appName = process.env.VITE_APP_NAME || "Inlayo";
 const siteUrl = (process.env.META_SITE_URL || "https://osu.inlayo.com").replace(/\/$/, "");
 const apiTarget = (process.env.META_API_TARGET || "https://api.inlayo.com").replace(/\/$/, "");
 const apiHost = process.env.META_API_HOST || "api.inlayo.com";
+const discordInviteUrl = process.env.VITE_DISCORD_INVITE || "https://discord.gg/qPdNsutTte";
 const port = Number(process.env.META_PORT || 4173);
 
 const botPattern = /discordbot|twitterbot|facebookexternalhit|slackbot|whatsapp|telegrambot|googlebot/i;
@@ -395,6 +396,12 @@ async function getMetadata(pathname, searchParams = new URLSearchParams()) {
       type: "website",
       noIndex: true,
     },
+    "/admin": {
+      title: `Admin | ${appName}`,
+      description: `Manage ${appName}.`,
+      type: "website",
+      noIndex: true,
+    },
   };
   if (Object.prototype.hasOwnProperty.call(pageMetadata, pathname)) {
     return pageMetadata[pathname];
@@ -411,6 +418,12 @@ async function serve(request, response) {
   const requestUrl = new URL(request.url, siteUrl);
   const pathname = decodeURIComponent(requestUrl.pathname);
   const userAgent = request.headers["user-agent"] || "";
+
+  if (pathname === "/discord") {
+    response.writeHead(302, { Location: discordInviteUrl });
+    response.end();
+    return;
+  }
 
   if (botPattern.test(userAgent) && !path.extname(pathname)) {
     try {

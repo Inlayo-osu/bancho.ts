@@ -1,6 +1,8 @@
+import { useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 
 import { Layout } from "@/components/layout/Layout";
+import { discordInviteUrl } from "@/lib/links";
 import { AdminPage } from "@/pages/AdminPage";
 import { BeatmapPage } from "@/pages/BeatmapPage";
 import { ChatPage } from "@/pages/ChatPage";
@@ -20,9 +22,18 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { UsersPage } from "@/pages/UsersPage";
 import { VerifyEmailPage } from "@/pages/VerifyEmailPage";
 
+function DiscordRedirect() {
+  useEffect(() => {
+    window.location.replace(discordInviteUrl);
+  }, []);
+
+  return null;
+}
+
 export default function App() {
   return (
     <Routes>
+      <Route path="/discord" element={<DiscordRedirect />} />
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
