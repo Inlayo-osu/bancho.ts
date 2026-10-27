@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 
+import { Avatar } from "@/components/Avatar";
 import { Card } from "@/components/ui/Card";
 import { ErrorState, LoadingState } from "@/components/states";
 import { api } from "@/lib/api/client";
@@ -31,10 +32,10 @@ const MODE_OPTIONS = [
   { id: 1, label: "osu!taiko" },
   { id: 2, label: "osu!catch" },
   { id: 3, label: "osu!mania" },
-  { id: 4, label: "Relax standard" },
-  { id: 5, label: "Relax taiko" },
-  { id: 6, label: "Relax catch" },
-  { id: 8, label: "Autopilot standard" },
+  { id: 4, label: "rx!standard" },
+  { id: 5, label: "rx!taiko" },
+  { id: 6, label: "rx!catch" },
+  { id: 8, label: "ap!standard" },
 ];
 
 const MAP_STATUSES = [
@@ -141,7 +142,15 @@ export function AdminPage() {
                       selectedUserId === user.id ? "bg-surface-2" : ""
                     }`}
                   >
-                    {user.name} <span className="text-muted">#{user.id}</span>
+                    <span className="flex items-center gap-3">
+                      <Avatar
+                        playerId={user.id}
+                        alt={`${user.name}'s avatar`}
+                        className="h-9 w-9 rounded-lg bg-surface-3 object-cover"
+                      />
+                      <span className="font-medium">{user.name}</span>
+                      <span className="text-muted">#{user.id}</span>
+                    </span>
                   </button>
                 </li>
               ))}
@@ -293,13 +302,20 @@ function PlayerManagement({
   return (
     <div className="space-y-4">
       <Card className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold">
-            {user.name} <span className="text-sm text-muted">#{user.id}</span>
-          </h3>
-          <p className="text-sm text-muted">
-            {restricted ? "Restricted" : "Unrestricted"} · {user.country}
-          </p>
+        <div className="flex items-center gap-3">
+          <Avatar
+            playerId={user.id}
+            alt={`${user.name}'s avatar`}
+            className="h-12 w-12 rounded-xl bg-surface-2 object-cover"
+          />
+          <div>
+            <h3 className="text-lg font-semibold">
+              {user.name} <span className="text-sm text-muted">#{user.id}</span>
+            </h3>
+            <p className="text-sm text-muted">
+              {restricted ? "Restricted" : "Unrestricted"} · {user.country}
+            </p>
+          </div>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
