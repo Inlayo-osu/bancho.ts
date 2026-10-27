@@ -51,6 +51,30 @@ export interface PlayerStats {
   country_rank: number | null;
 }
 
+export interface AdminUserSummary {
+  id: number;
+  name: string;
+  priv: number;
+}
+
+export interface AdminUser extends AdminUserSummary {
+  country: string;
+  creation_time: number;
+  latest_activity: number;
+  stats: Omit<PlayerStats, "rank" | "country_rank">[];
+}
+
+export interface AdminMap {
+  id: number;
+  set_id: number;
+  artist: string;
+  title: string;
+  version: string;
+  creator: string;
+  status: number;
+  frozen: boolean;
+}
+
 export interface SearchPlayer {
   id: number;
   name: string;

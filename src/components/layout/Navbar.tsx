@@ -11,6 +11,9 @@ const NAV_LINKS = [
   { to: "/topplays", label: "Top Plays" },
 ];
 
+const ADMINISTRATOR = 1 << 13;
+const DEVELOPER = 1 << 14;
+
 export function Navbar() {
   const { player, isLoading } = useAuth();
 
@@ -43,6 +46,20 @@ export function Navbar() {
                   {link.label}
                 </NavLink>
               ))}
+              {player && (player.priv & (ADMINISTRATOR | DEVELOPER)) !== 0 && (
+                <NavLink
+                  to="/admin"
+                  className={({ isActive }) =>
+                    `rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-surface-2 text-slate-100"
+                        : "text-muted hover:text-slate-100"
+                    }`
+                  }
+                >
+                  Admin
+                </NavLink>
+              )}
               <a
                 href="https://discord.gg/qPdNsutTte"
                 target="_blank"

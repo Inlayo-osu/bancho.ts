@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 
 import { Layout } from "@/components/layout/Layout";
+import { AdminPage } from "@/pages/AdminPage";
 import { BeatmapPage } from "@/pages/BeatmapPage";
 import { ChatPage } from "@/pages/ChatPage";
 import { ClanPage } from "@/pages/ClanPage";
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/friends" element={<FriendsPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

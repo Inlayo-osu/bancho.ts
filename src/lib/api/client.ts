@@ -1,5 +1,8 @@
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "@/lib/api/http";
 import type {
+  AdminMap,
+  AdminUser,
+  AdminUserSummary,
   Beatmap,
   Clan,
   LeaderboardEntry,
@@ -111,6 +114,49 @@ export const api = {
       page: options.page,
       page_size: options.pageSize,
     }),
+
+  searchAdminUsers: (query: string) =>
+    apiGet<AdminUserSummary[]>("/v2/admin/users", { query }),
+
+  fetchAdminUser: (userId: number) =>
+    apiGet<AdminUser>(`/v2/admin/users/${userId}`),
+
+  updateAdminUserPrivileges: (userId: number, privileges: number) =>
+    apiPatch<{ id: number; priv: number }>(
+      `/v2/admin/users/${userId}/privileges`,
+      { privileges },
+    ),
+
+  restrictAdminUser: (userId: number, reason: string) =>
+    apiPost<{ id: number; status: string; email_notice: string }>(
+      `/v2/admin/users/${userId}/restrict`,
+      { reason },
+    ),
+
+  unrestrictAdminUser: (userId: number, reason: string) =>
+    apiPost<{ id: number; status: string }>(
+      `/v2/admin/users/${userId}/unrestrict`,
+      { reason },
+    ),
+
+  wipeAdminUserScores: (userId: number, mode: number | null) =>
+    apiPost<{ id: number; mode: number | null; deleted_scores: number }>(
+      `/v2/admin/users/${userId}/scores/wipe`,
+      { mode },
+    ),
+
+  fetchAdminMap: (mapId: number) =>
+    apiGet<AdminMap>(`/v2/admin/maps/${mapId}`),
+
+  updateAdminMapStatus: (
+    mapId: number,
+    status: number,
+    scope: "map" | "set",
+  ) =>
+    apiPatch<{ id: number; status: number; scope: "map" | "set" }>(
+      `/v2/admin/maps/${mapId}/status`,
+      { status, scope },
+    ),
 
   fetchBeatmap: (mapId: number) => apiGet<Beatmap>(`/v2/maps/${mapId}`),
 
