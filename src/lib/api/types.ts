@@ -55,12 +55,12 @@ export interface AdminUserSummary {
   id: number;
   name: string;
   priv: number;
+  country: string;
+  latest_activity: number;
 }
 
 export interface AdminUser extends AdminUserSummary {
-  country: string;
   creation_time: number;
-  latest_activity: number;
   stats: Omit<PlayerStats, "rank" | "country_rank">[];
 }
 

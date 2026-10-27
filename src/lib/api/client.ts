@@ -118,6 +118,17 @@ export const api = {
   searchAdminUsers: (query: string) =>
     apiGet<AdminUserSummary[]>("/v2/admin/users", { query }),
 
+  fetchAdminUsers: (options: {
+    page?: number;
+    pageSize?: number;
+    includeHidden?: boolean;
+  } = {}) =>
+    apiGet<AdminUserSummary[]>("/v2/admin/users", {
+      page: options.page,
+      page_size: options.pageSize,
+      include_hidden: options.includeHidden,
+    }),
+
   fetchAdminUser: (userId: number) =>
     apiGet<AdminUser>(`/v2/admin/users/${userId}`),
 

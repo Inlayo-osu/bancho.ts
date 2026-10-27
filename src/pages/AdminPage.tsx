@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 
 import { Avatar } from "@/components/Avatar";
+import { BeatmapThumb } from "@/components/BeatmapThumb";
 import { Card } from "@/components/ui/Card";
 import { ErrorState, LoadingState } from "@/components/states";
 import { api } from "@/lib/api/client";
@@ -302,12 +303,18 @@ function PlayerManagement({
   return (
     <div className="space-y-4">
       <Card className="space-y-4">
-        <div className="flex items-center gap-3">
-          <Avatar
-            playerId={user.id}
-            alt={`${user.name}'s avatar`}
-            className="h-12 w-12 rounded-xl bg-surface-2 object-cover"
-          />
+        <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to={`/u/${user.id}`}
+            aria-label={`View ${user.name}'s profile`}
+            className="rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            <Avatar
+              playerId={user.id}
+              alt={`${user.name}'s avatar`}
+              className="h-12 w-12 rounded-xl bg-surface-2 object-cover"
+            />
+          </Link>
           <div>
             <h3 className="text-lg font-semibold">
               {user.name} <span className="text-sm text-muted">#{user.id}</span>
@@ -316,6 +323,12 @@ function PlayerManagement({
               {restricted ? "Restricted" : "Unrestricted"} · {user.country}
             </p>
           </div>
+          <Link
+            to={`/u/${user.id}`}
+            className="ml-auto rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm font-medium transition-colors hover:bg-surface-3"
+          >
+            View public profile
+          </Link>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
@@ -449,13 +462,19 @@ function MapManagement({
 }) {
   return (
     <div className="space-y-4 border-t border-line pt-4">
-      <div>
-        <p className="font-medium">
-          {map.artist} - {map.title} [{map.version}]
-        </p>
-        <p className="text-sm text-muted">
-          Map #{map.id} · Set #{map.set_id} · mapped by {map.creator}
-        </p>
+      <div className="flex items-center gap-3">
+        <BeatmapThumb
+          setId={map.set_id}
+          className="h-16 w-24 shrink-0 rounded-xl border border-line bg-surface-2"
+        />
+        <div className="min-w-0">
+          <p className="font-medium">
+            {map.artist} - {map.title} [{map.version}]
+          </p>
+          <p className="text-sm text-muted">
+            Map #{map.id} · Set #{map.set_id} · mapped by {map.creator}
+          </p>
+        </div>
       </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <select
