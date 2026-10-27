@@ -8,7 +8,6 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { Card } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { api } from "@/lib/api/client";
-import { ApiError } from "@/lib/api/http";
 import type { Player } from "@/lib/api/types";
 import { formatTimeAgo } from "@/lib/format";
 import { usePageTitle } from "@/lib/usePageTitle";
@@ -25,46 +24,19 @@ export function UsersPage() {
       let page = 1;
 
       while (true) {
-        const response = await api.fetchPlayers({ page, pageSize: 100 });
+        const response = await api.fetchPlayers({
+          online: onlineOnly,
+          page,
+          pageSize: 100,
+        });
         const chunk = response.data;
         allPlayers.push(...chunk);
 
-        if (chunk.length < 100) {
-          break;
-        }
-
+        if (chunk.length < 100) break;
         page += 1;
       }
 
-      if (!onlineOnly) {
-        return allPlayers;
-      }
-
-      const onlinePlayers: Player[] = [];
-      const statusChecks = await Promise.allSettled(
-        allPlayers.map(async (player) => {
-          try {
-            await api.fetchPlayerStatus(player.id);
-            return player;
-          } catch (error) {
-            if (
-              error instanceof ApiError &&
-              (error.status === 404 || error.status === 405)
-            ) {
-              return null;
-            }
-            throw error;
-          }
-        }),
-      );
-
-      for (const result of statusChecks) {
-        if (result.status === "fulfilled" && result.value) {
-          onlinePlayers.push(result.value);
-        }
-      }
-
-      return onlinePlayers;
+      return allPlayers;
     },
   });
 
@@ -93,7 +65,7 @@ export function UsersPage() {
         ) : (
           <ul className="space-y-1.5">
             {usersQuery.data.map((player) => (
-              <UserRow key={player.id} player={player} />
+              <UserRow key={player.id} player={player} online={onlineOnly} />
             ))}
           </ul>
         ))}
@@ -101,7 +73,7 @@ export function UsersPage() {
   );
 }
 
-function UserRow({ player }: { player: Player }) {
+function UserRow({ player, online }: { player: Player; online: boolean }) {
   return (
     <li>
       <Card className="flex items-center gap-3.5">
@@ -120,7 +92,7 @@ function UserRow({ player }: { player: Player }) {
             </Link>
           </div>
           <p className="mt-0.5 text-xs text-muted">
-            Last seen {formatTimeAgo(player.latest_activity)}
+            {online ? "Online now" : `Last seen ${formatTimeAgo(player.latest_activity)}`}
           </p>
         </div>
         <FriendButton playerId={player.id} />
