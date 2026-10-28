@@ -67,7 +67,9 @@ export function AdminPage() {
   const userSearchQuery = useQuery({
     queryKey: ["admin-users", userSearch.trim()],
     queryFn: () => api.searchAdminUsers(userSearch.trim()).then((result) => result.data),
-    enabled: userSearch.trim().length >= 2 && isAdmin,
+    enabled:
+      (userSearch.trim().length >= 2 || /^\d+$/.test(userSearch.trim())) &&
+      isAdmin,
   });
 
   const userQuery = useQuery({
@@ -123,7 +125,7 @@ export function AdminPage() {
             <input
               value={userSearch}
               onChange={(event) => setUserSearch(event.target.value)}
-              placeholder="Search by username"
+              placeholder="Search by username or user ID"
               className="w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm"
             />
           </label>

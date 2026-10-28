@@ -22,6 +22,10 @@ function useDebounced<T>(value: T, delayMs: number): T {
   return debounced;
 }
 
+function canSearchPlayers(query: string): boolean {
+  return query.length >= 2 || /^\d+$/.test(query);
+}
+
 export function PlayerSearch({
   onSelect,
   placeholder = "Search players...",
@@ -48,7 +52,7 @@ export function PlayerSearch({
   } = useQuery({
     queryKey: ["player-search", debouncedQuery],
     queryFn: () => api.searchPlayers(debouncedQuery),
-    enabled: debouncedQuery.length >= 2,
+    enabled: canSearchPlayers(debouncedQuery),
     select: (envelope) => envelope.data.slice(0, 8),
   });
 
@@ -69,7 +73,7 @@ export function PlayerSearch({
   }, []);
 
   useEffect(() => {
-    if (!open || debouncedQuery.length < 2 || !inputRef.current) {
+    if (!open || !canSearchPlayers(debouncedQuery) || !inputRef.current) {
       setMenuPosition(null);
       return;
     }
@@ -159,7 +163,7 @@ export function PlayerSearch({
       />
 
       {open &&
-        debouncedQuery.length >= 2 &&
+        canSearchPlayers(debouncedQuery) &&
         menuPosition &&
         createPortal(
           <div
